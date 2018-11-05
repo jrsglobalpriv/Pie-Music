@@ -1,0 +1,183 @@
+<html>
+   
+   <head>
+      <title>Pie Music</title>
+      <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+      <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular-route.min.js"></script>
+      
+      <!-- For Backend -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+      <!-- For Backend -->
+
+      <link href="https://fonts.googleapis.com/css?family=Lato:900" rel="stylesheet">
+
+      <style>
+      
+         html{
+            background-color: white; 
+
+            font-family: 'Lato', Arial, sans-serif;
+         }
+
+         /*
+         .center{
+         width: 800px;
+          height: 100px;
+          position: absolute;
+          top:0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+
+          margin: 0px auto;
+         }
+         */
+
+         table, th , td {
+            /*
+            border: 1px solid grey;
+            border-collapse: collapse;
+            padding: 5px;
+            */
+            border-collapse: collapse;
+
+         }
+         
+         /* #f2f2f2; */
+         /* #ffffff; */
+
+
+         table tr:nth-child(odd) {
+            background-color: orange;
+         }
+         
+         table tr:nth-child(even) {
+            background-color: orange;
+
+         }
+
+         .center {
+           width: 350px;
+           display: block;
+           /*background-color: #eee;*/
+           margin-left: auto;
+           margin-right: auto;
+         }
+        
+      </style>
+      
+   </head>
+   
+   <body>
+
+      <div ng-app = "mainApp" class="center">
+         <div class="logo" style="font-family: Impact, Charcoal, sans-serif;font-weight:normal;">
+            <img src="frontend-assets/img/Pie Music Logo.png" alt="Pie Music Logo" height="100" width="100">
+            <h1 style="font-size:47px; color:purple; letter-spacing: 2px; position:relative; margin-top:-100px; margin-left:90px; padding:10px; z-index:100;">Pie Music</h1>
+            <p style="font-size:16px; font-weight:bold; color:orange; position:relative; margin-left:85px; margin-top:-40px; z-index:101;">Your favourite artistes and music.</p>
+         </div>
+
+         <div ng-view style="padding-left:0px;"><!-- </div> -->
+         
+            <script type = "text/ng-template" id = "Search.htm">
+               <div style="padding:5px;" ng-show="showbacknav">
+                  <img style="" src="frontend-assets/img/arrow-back.png" width="40" height="40" ng-click="navbackbutton(0,1,0)" /> 
+                  <p style="color:#AAD5F2; margin-top:-30px; margin-left:40px;">Back</p>
+               </div>
+               <div>
+                  <!-- -->
+                  <iframe ng-show="showplayer" style="" id="lstfmytplayer" scrolling="no" width="{{width}}" height="{{height}}" frameBorder="0" ng-src="{{detailFrame}}">Browser not compatible.</iframe>
+                  <!-- -->
+               </div>
+               <div ng-show="showsearcher">
+                  <p style ="height:100px; width:400px;">
+                     <input style ="border: 1px solid grey; font-size:20px; font-weight:bold; color:orange; height:75px; width:350px;"type="text" ng-click="jrssearchclear()" ng-change="jrssearch(artistsearchname)" ng-model="artistsearchname"/> 
+                  </p>
+               
+                  <table border="0" style="width:350px; margin-top:-30px;">               
+                     <tr ng-repeat = "obj in myArray">
+                        <td style="padding-left:13px; color:white;">{{ obj.name }}</td>
+                        <td>
+                           <img style="padding:5px; width:150px;" ng-src="{{ obj.image[2]['#text'] }}" ></td>
+                        <td>
+                           <img src="frontend-assets/img/arrow.png" width="40" height="40" ng-click="loadplayer(obj.name)" />
+                        <td>
+                     </tr>
+                  </table>  
+               </div>       
+            </script>
+         
+            <!-- 
+            <script type = "text/ng-template" id = "Play.htm">
+               <h2> Play temp </h2>
+            </script>
+            -->
+         </div>
+      
+      <script>
+         var mainApp = angular.module("mainApp", ['ngRoute']);
+         mainApp.config(['$routeProvider', function($routeProvider) {
+            $routeProvider.
+            
+            when('/Search', {
+               templateUrl: 'Search.htm',
+               controller: 'SearchController'
+            }).
+                        
+            otherwise({
+               redirectTo: '/Search'
+            });
+         }]);
+         
+         mainApp.controller('SearchController', function($scope,$http) {
+            $scope.width = 0;
+            $scope.height = 0;
+            $scope.message = "This page will be used to display search page";
+            
+            $scope.showplayer = 0;
+            $scope.showsearcher = 1;
+            $scope.showbacknav = 0;
+
+            $scope.loadplayer = function (artist){
+               
+               $scope.detailFrame = "backend/player.php?a="+artist+"&cnt=5&skin=12";
+               $scope.width = 330;
+               $scope.height = 500;
+               
+               $scope.showplayer = 1;
+               $scope.showsearcher = 0;
+               $scope.showbacknav = 1;
+
+            };
+
+            $scope.navbackbutton = function (showplayer_ag,showsearcher_ag,showbacknav_ag) {
+
+               $scope.showplayer = showplayer_ag;
+               $scope.showsearcher = showsearcher_ag;
+               $scope.showbacknav = showbacknav_ag;
+
+            };
+
+            $scope.myArray = [];
+            $scope.artistsearchname ="Type in artiste's name.";
+            $scope.jrssearchclear = function (argument) {
+               $scope.artistsearchname ="";
+            };
+
+            $scope.jrssearch = function (artistsearchname){
+               /** enter last fm api key: KEY */
+               
+               $http.get("http://ws.audioscrobbler.com/2.0/?method=artist.search&artist=" + artistsearchname + "&api_key=KEY&format=json&limit=3").then(function (response) {
+                  $scope.myArray = response.data.results.artistmatches.artist;
+               });
+            }
+         });
+         
+         //mainApp.controller('PlayController', function($scope) {
+         //   $scope.message = "This page will be used to display the play page";
+         //});
+         
+      </script>
+      
+   </body>
+</html>
